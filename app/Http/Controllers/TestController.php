@@ -61,7 +61,7 @@ class TestController extends Controller
                     'message' => 'Seal Info response successfully',
                 ];
 
-                return response()->json($response, 200);
+                return response()->json($response);
             } else {
                 $response = [
                     'success' => false,
@@ -69,7 +69,7 @@ class TestController extends Controller
                     'message' => 'Seal Info response false',
                 ];
 
-                return response()->json($response, 200);
+                return response()->json($response, 500);
             }
         } catch (\Exception $exception) {
             Log::info($exception);
