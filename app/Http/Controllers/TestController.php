@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Test2Request;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class TestController extends Controller
 {
@@ -24,50 +25,55 @@ class TestController extends Controller
 
     public function test2(Test2Request $request)
     {
-        $rootPath = 'D:\Test\Test2';
+        try {
+            $rootPath = 'D:\Test\Test2';
 
-        $requestFile = $request->file('file');
+            $requestFile = $request->file('file');
 
-        $appEnvPath = $this->getAppEnv($request->app_env);
-        $contractServer = $this->getContractServer($request->contract_server);
+            $appEnvPath = $this->getAppEnv($request->app_env);
+            $contractServer = $this->getContractServer($request->contract_server);
 
-        $path = $rootPath . $appEnvPath . $contractServer;
+            $path = $rootPath . $appEnvPath . $contractServer;
 
-        $matchingFile = null;
+            $matchingFile = null;
 
-        if (is_dir($path)) {
-            if ($handle = opendir($path)) {
-                while (false !== ($file = readdir($handle))) {
-                    if ($file == $requestFile->getClientOriginalName()) {
-                        $matchingFile = $file;
-                        break;
+            if (is_dir($path)) {
+                if ($handle = opendir($path)) {
+                    while (false !== ($file = readdir($handle))) {
+                        if ($file == $requestFile->getClientOriginalName()) {
+                            $matchingFile = $file;
+                            break;
+                        }
                     }
+                    closedir($handle);
                 }
-                closedir($handle);
             }
-        }
 
-        if ($matchingFile !== null) {
-            $filePath = $path . "/" . $matchingFile;
-            $htmlContent = File::get($filePath);
-            $base64Content = base64_encode($htmlContent);
+            if ($matchingFile !== null) {
+                $filePath = $path . "/" . $matchingFile;
+                $htmlContent = File::get($filePath);
+                $base64Content = base64_encode($htmlContent);
 
-            $response = [
-                'success' => true,
-                'filename' => $matchingFile,
-                'content' => $base64Content,
-                'message' => 'Seal Info response successfully',
-            ];
+                $response = [
+                    'success' => true,
+                    'filename' => $matchingFile,
+                    'content' => $base64Content,
+                    'message' => 'Seal Info response successfully',
+                ];
 
-            return response()->json($response, 200);
-        } else {
-            $response = [
-                'success' => false,
-                'filename' => '',
-                'message' => 'Seal Info response false',
-            ];
+                return response()->json($response, 200);
+            } else {
+                $response = [
+                    'success' => false,
+                    'filename' => '',
+                    'message' => 'Seal Info response false',
+                ];
 
-            return response()->json($response, 200);
+                return response()->json($response, 200);
+            }
+        } catch (\Exception $exception) {
+            Log::info($exception);
+            return $exception;
         }
     }
 
